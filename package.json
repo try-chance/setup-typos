@@ -1,6 +1,6 @@
 {
   "name": "setup-typos",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "private": true,
   "description": "GitHub Action for installing crate-ci/typos",
   "type": "module",
