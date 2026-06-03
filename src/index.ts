@@ -4,7 +4,7 @@ import * as tc from "@actions/tool-cache";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 
-import { getArtifact, getCacheKey, normalizeVersion, OWNER, REPO, TOOL_NAME } from "./typos";
+import { getArtifact, getCacheKey, normalizeVersion, OWNER, REPO, TOOL_NAME } from "./typos.js";
 
 type InstallResult = {
   executablePath: string;

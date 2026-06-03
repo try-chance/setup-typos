@@ -1,9 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import typos from "../lib/typos.js";
-
-const { getArtifact, getCacheKey, normalizeVersion } = typos;
+import { getArtifact, getCacheKey, normalizeVersion } from "../lib/typos.js";
 
 test("normalizes release tags", () => {
   assert.equal(normalizeVersion("v1.47.1"), "1.47.1");

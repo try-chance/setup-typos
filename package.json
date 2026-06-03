@@ -3,13 +3,27 @@
   "version": "1.0.0",
   "private": true,
   "description": "GitHub Action for installing crate-ci/typos",
+  "type": "module",
   "main": "dist/index.js",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "homepage": "https://github.com/try-chance/setup-typos",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/try-chance/setup-typos.git"
+  },
+  "bugs": {
+    "url": "https://github.com/try-chance/setup-typos/issues"
+  },
   "engines": {
-    "node": ">=24"
+    "node": ">=24.0.0"
   },
   "scripts": {
     "build": "tsc",
-    "package": "esbuild src/index.ts --bundle --platform=node --target=node24 --format=cjs --outfile=dist/index.js --legal-comments=inline",
+    "bundle": "npm run package",
+    "package": "node scripts/build.mjs",
+    "package:watch": "npm run package -- --watch",
     "test": "npm run build && node --test test/*.test.mjs",
     "all": "npm run build && npm run package"
   },
