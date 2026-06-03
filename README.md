@@ -41,47 +41,11 @@ The action follows the official `typos` release artifact names and supports:
 | macOS | `x64`, `arm64` |
 | Windows | `x64` |
 
-## Reuse Pattern
-
-The action code separates the reusable GitHub release installer from the `typos` release metadata:
+## Design
 
 | File | Purpose |
 | --- | --- |
-| `src/github-release-tool.ts` | Pure concept: describe a GitHub release tool, normalize versions, resolve `latest`, and build platform-specific asset URLs. |
-| `src/github-release-tool-installer.ts` | GitHub Actions adapter: download, extract, chmod, and cache one executable with `@actions/tool-cache`. |
-| `src/typos.ts` | `typos`-specific declaration: owner/repo, version prefix, supported platform targets, archive extensions, and executable names. |
-| `src/index.ts` | Action entrypoint: read inputs, call the installer, add the install directory to PATH, and set outputs. |
+| `src/typos.ts` | `typos` release metadata: owner/repo, supported platform targets, archive extensions, executable names, and download URLs. |
+| `src/index.ts` | Action entrypoint: read inputs, resolve versions, download, extract, cache the executable, add it to PATH, and set outputs. |
 
-To add another GitHub release tool with the same asset shape, define a new tool spec:
-
-```ts
-import type { GitHubReleaseTool } from "./github-release-tool";
-
-export const DEMO_TOOL: GitHubReleaseTool = {
-  name: "demo",
-  owner: "acme",
-  repo: "demo",
-  versionPrefix: "v",
-  platforms: {
-    linux: {
-      targetSuffix: "unknown-linux-musl",
-      archiveExt: "tar.gz",
-      executable: "demo",
-      arches: {
-        x64: "x86_64",
-        arm64: "aarch64"
-      }
-    },
-    win32: {
-      targetSuffix: "pc-windows-msvc",
-      archiveExt: "zip",
-      executable: "demo.exe",
-      arches: {
-        x64: "x86_64"
-      }
-    }
-  }
-};
-```
-
-By default, assets are expected to be named `<tool>-<tag>-<target>.<ext>`, such as `demo-v1.2.3-x86_64-unknown-linux-musl.tar.gz`. For projects with a different naming convention, provide `assetName`.
+The implementation intentionally stays small and `typos`-focused. If another setup action is needed later, copy this shape and change the release metadata instead of introducing a framework too early.

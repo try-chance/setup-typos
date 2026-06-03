@@ -9,7 +9,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "package": "esbuild src/index.ts --bundle --platform=node --target=node24 --format=cjs --outfile=dist/index.js --sourcemap --legal-comments=external",
+    "package": "esbuild src/index.ts --bundle --platform=node --target=node24 --format=cjs --outfile=dist/index.js --legal-comments=inline",
     "test": "npm run build && node --test test/*.test.mjs",
     "all": "npm run build && npm run package"
   },

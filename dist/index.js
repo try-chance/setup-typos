@@ -5418,6 +5418,7 @@ var require_body = __commonJS({
         const boundary = `----formdata-undici-0${`${random(1e11)}`.padStart(11, "0")}`;
         const prefix = `--${boundary}\r
 Content-Disposition: form-data`;
+        /*! formdata-polyfill. MIT License. Jimmy Wärting <https://jimmy.warting.se/opensource> */
         const escape = (str) => str.replace(/\n/g, "%0A").replace(/\r/g, "%0D").replace(/"/g, "%22");
         const normalizeLinefeeds = (value) => value.replace(/\r?\n|\r/g, "\r\n");
         const blobParts = [];
@@ -16856,6 +16857,7 @@ var require_frame = __commonJS({
         buffer2[0] = buffer2[1] = 0;
         buffer2[0] |= 128;
         buffer2[0] = (buffer2[0] & 240) + opcode;
+        /*! ws. MIT License. Einar Otto Stangvik <einaros@gmail.com> */
         buffer2[offset - 4] = maskKey[0];
         buffer2[offset - 3] = maskKey[1];
         buffer2[offset - 2] = maskKey[2];
@@ -22618,91 +22620,6 @@ function info(message) {
   process.stdout.write(message + os5.EOL);
 }
 
-// src/github-release-tool.ts
-function normalizeVersion(tool, version) {
-  const normalized = version.trim();
-  const prefix = tool.versionPrefix ?? "v";
-  if (!normalized) {
-    throw new Error("Version cannot be empty");
-  }
-  if (prefix && normalized.toLowerCase().startsWith(prefix.toLowerCase())) {
-    const unprefixed = normalized.slice(prefix.length);
-    if (!unprefixed) {
-      throw new Error("Version cannot be empty");
-    }
-    return unprefixed;
-  }
-  return normalized;
-}
-function getReleaseTag(tool, version) {
-  return `${tool.versionPrefix ?? "v"}${normalizeVersion(tool, version)}`;
-}
-function getCacheKey(platform2 = process.platform, arch3 = process.arch) {
-  return `${platform2}-${arch3}`;
-}
-function getArtifact(tool, version, platform2 = process.platform, arch3 = process.arch) {
-  const platformSpec = tool.platforms[platform2];
-  if (!platformSpec) {
-    throw new Error(`Unsupported platform for ${tool.name}: ${platform2}`);
-  }
-  const targetArch = platformSpec.arches[arch3];
-  if (!targetArch) {
-    throw new Error(`Unsupported platform and architecture for ${tool.name}: ${platform2}/${arch3}`);
-  }
-  const target = `${targetArch}-${platformSpec.targetSuffix}`;
-  const cleanVersion = normalizeVersion(tool, version);
-  const tag = getReleaseTag(tool, cleanVersion);
-  const fileName = tool.assetName?.({
-    tool,
-    version: cleanVersion,
-    tag,
-    target,
-    archiveExt: platformSpec.archiveExt,
-    platform: platform2,
-    arch: arch3,
-    executable: platformSpec.executable
-  }) ?? `${tool.name}-${tag}-${target}.${platformSpec.archiveExt}`;
-  return {
-    target,
-    archiveExt: platformSpec.archiveExt,
-    executable: platformSpec.executable,
-    fileName,
-    url: `https://github.com/${tool.owner}/${tool.repo}/releases/download/${tag}/${fileName}`
-  };
-}
-async function resolveLatestVersion(tool, githubToken) {
-  const headers = {
-    Accept: "application/vnd.github+json",
-    "User-Agent": tool.userAgent ?? `${tool.name}-setup-action`,
-    "X-GitHub-Api-Version": "2022-11-28"
-  };
-  if (githubToken) {
-    headers.Authorization = `Bearer ${githubToken}`;
-  }
-  const response = await fetch(`https://api.github.com/repos/${tool.owner}/${tool.repo}/releases/latest`, {
-    headers
-  });
-  if (!response.ok) {
-    const body = await response.text().catch(() => "");
-    throw new Error(
-      `Failed to resolve latest ${tool.name} release: HTTP ${response.status} ${response.statusText}
-${body}`
-    );
-  }
-  const release = await response.json();
-  if (!release.tag_name) {
-    throw new Error(`GitHub latest release response for ${tool.name} did not include tag_name`);
-  }
-  return normalizeVersion(tool, release.tag_name);
-}
-async function resolveVersion(tool, requestedVersion, githubToken) {
-  const version = requestedVersion.trim();
-  if (!version || version.toLowerCase() === "latest") {
-    return resolveLatestVersion(tool, githubToken);
-  }
-  return normalizeVersion(tool, version);
-}
-
 // node_modules/@actions/tool-cache/lib/tool-cache.js
 var crypto2 = __toESM(require("crypto"), 1);
 var fs3 = __toESM(require("fs"), 1);
@@ -23137,9 +23054,106 @@ function _getGlobal(key, defaultValue) {
   return value !== void 0 ? value : defaultValue;
 }
 
-// src/github-release-tool-installer.ts
+// src/index.ts
 var fs4 = __toESM(require("node:fs/promises"));
 var path6 = __toESM(require("node:path"));
+
+// src/typos.ts
+var TOOL_NAME = "typos";
+var OWNER = "crate-ci";
+var REPO = "typos";
+var PLATFORMS = {
+  linux: {
+    targetSuffix: "unknown-linux-musl",
+    archiveExt: "tar.gz",
+    executable: TOOL_NAME,
+    arches: {
+      x64: "x86_64",
+      arm64: "aarch64"
+    }
+  },
+  darwin: {
+    targetSuffix: "apple-darwin",
+    archiveExt: "tar.gz",
+    executable: TOOL_NAME,
+    arches: {
+      x64: "x86_64",
+      arm64: "aarch64"
+    }
+  },
+  win32: {
+    targetSuffix: "pc-windows-msvc",
+    archiveExt: "zip",
+    executable: `${TOOL_NAME}.exe`,
+    arches: {
+      x64: "x86_64"
+    }
+  }
+};
+function normalizeVersion(version) {
+  const normalized = version.trim().replace(/^v/i, "");
+  if (!normalized) {
+    throw new Error("Version cannot be empty");
+  }
+  return normalized;
+}
+function getCacheKey(platform2 = process.platform, arch3 = process.arch) {
+  return `${platform2}-${arch3}`;
+}
+function getArtifact(version, platform2 = process.platform, arch3 = process.arch) {
+  const spec = PLATFORMS[platform2];
+  if (!spec) {
+    throw new Error(`Unsupported platform: ${platform2}`);
+  }
+  const targetArch = spec.arches[arch3];
+  if (!targetArch) {
+    throw new Error(`Unsupported platform and architecture: ${platform2}/${arch3}`);
+  }
+  const cleanVersion = normalizeVersion(version);
+  const target = `${targetArch}-${spec.targetSuffix}`;
+  const fileName = `${TOOL_NAME}-v${cleanVersion}-${target}.${spec.archiveExt}`;
+  return {
+    target,
+    archiveExt: spec.archiveExt,
+    executable: spec.executable,
+    fileName,
+    url: `https://github.com/${OWNER}/${REPO}/releases/download/v${cleanVersion}/${fileName}`
+  };
+}
+
+// src/index.ts
+async function resolveLatestVersion(githubToken) {
+  const headers = {
+    Accept: "application/vnd.github+json",
+    "User-Agent": "setup-typos-action",
+    "X-GitHub-Api-Version": "2022-11-28"
+  };
+  if (githubToken) {
+    headers.Authorization = `Bearer ${githubToken}`;
+  }
+  const response = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/releases/latest`, {
+    headers
+  });
+  if (!response.ok) {
+    const body = await response.text().catch(() => "");
+    throw new Error(
+      `Failed to resolve latest typos release: HTTP ${response.status} ${response.statusText}
+${body}`
+    );
+  }
+  const release = await response.json();
+  if (!release.tag_name) {
+    throw new Error("GitHub latest release response did not include tag_name");
+  }
+  return normalizeVersion(release.tag_name);
+}
+async function resolveVersion(requestedVersion, githubToken) {
+  const version = requestedVersion.trim();
+  if (!version || version.toLowerCase() === "latest") {
+    return resolveLatestVersion(githubToken);
+  }
+  return normalizeVersion(version);
+}
 async function extractArchive(archivePath, archiveExt) {
   return archiveExt === "zip" ? extractZip(archivePath) : extractTar(archivePath);
 }
@@ -23149,14 +23163,10 @@ async function makeExecutable(filePath) {
     await fs4.chmod(filePath, 493);
   }
 }
-async function installGitHubReleaseTool(tool, version, options = {}) {
-  const platform2 = options.platform ?? process.platform;
-  const arch3 = options.arch ?? process.arch;
-  const logger = options.logger ?? {};
-  const artifact = getArtifact(tool, version, platform2, arch3);
-  const cacheKey = getCacheKey(platform2, arch3);
-  const cleanVersion = normalizeVersion(tool, version);
-  const cachedDirectory = find(tool.name, cleanVersion, cacheKey);
+async function installTypos(version) {
+  const artifact = getArtifact(version);
+  const cacheKey = getCacheKey();
+  const cachedDirectory = find(TOOL_NAME, version, cacheKey);
   if (cachedDirectory) {
     const cachedExecutable2 = path6.join(cachedDirectory, artifact.executable);
     await makeExecutable(cachedExecutable2);
@@ -23166,8 +23176,8 @@ async function installGitHubReleaseTool(tool, version, options = {}) {
       cacheHit: true
     };
   }
-  logger.info?.(`Downloading ${artifact.fileName}`);
-  logger.debug?.(`Download URL: ${artifact.url}`);
+  info(`Downloading ${artifact.fileName}`);
+  debug(`Download URL: ${artifact.url}`);
   const archivePath = await downloadTool(artifact.url);
   const extractedDirectory = await extractArchive(archivePath, artifact.archiveExt);
   const extractedExecutable = path6.join(extractedDirectory, artifact.executable);
@@ -23175,8 +23185,8 @@ async function installGitHubReleaseTool(tool, version, options = {}) {
   const cachedDirectoryAfterInstall = await cacheFile(
     extractedExecutable,
     artifact.executable,
-    tool.name,
-    cleanVersion,
+    TOOL_NAME,
+    version,
     cacheKey
   );
   const cachedExecutable = path6.join(cachedDirectoryAfterInstall, artifact.executable);
@@ -23187,66 +23197,21 @@ async function installGitHubReleaseTool(tool, version, options = {}) {
     cacheHit: false
   };
 }
-
-// src/typos.ts
-var TYPOS_TOOL = {
-  name: "typos",
-  owner: "crate-ci",
-  repo: "typos",
-  versionPrefix: "v",
-  userAgent: "setup-typos-action",
-  platforms: {
-    linux: {
-      targetSuffix: "unknown-linux-musl",
-      archiveExt: "tar.gz",
-      executable: "typos",
-      arches: {
-        x64: "x86_64",
-        arm64: "aarch64"
-      }
-    },
-    darwin: {
-      targetSuffix: "apple-darwin",
-      archiveExt: "tar.gz",
-      executable: "typos",
-      arches: {
-        x64: "x86_64",
-        arm64: "aarch64"
-      }
-    },
-    win32: {
-      targetSuffix: "pc-windows-msvc",
-      archiveExt: "zip",
-      executable: "typos.exe",
-      arches: {
-        x64: "x86_64"
-      }
-    }
-  }
-};
-
-// src/index.ts
 async function run() {
   const githubToken = getInput("github-token") || process.env.GITHUB_TOKEN || "";
   if (githubToken) {
     setSecret(githubToken);
   }
-  const version = await resolveVersion(TYPOS_TOOL, getInput("version") || "latest", githubToken);
-  const result = await installGitHubReleaseTool(TYPOS_TOOL, version, {
-    logger: {
-      info,
-      debug
-    }
-  });
+  const version = await resolveVersion(getInput("version") || "latest", githubToken);
+  const result = await installTypos(version);
   addPath(result.directory);
   setOutput("version", version);
   setOutput("path", result.executablePath);
   setOutput("dir", result.directory);
   setOutput("cache-hit", String(result.cacheHit));
-  info(`Installed ${TYPOS_TOOL.name} v${version}`);
+  info(`Installed typos v${version}`);
   info(`Added ${result.directory} to PATH`);
 }
 run().catch((error2) => {
   setFailed(error2 instanceof Error ? error2.message : String(error2));
 });
-//# sourceMappingURL=index.js.map
