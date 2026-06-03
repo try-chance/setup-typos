@@ -1,0 +1,32 @@
+{
+  "name": "setup-typos",
+  "version": "1.0.0",
+  "private": true,
+  "description": "GitHub Action for installing crate-ci/typos",
+  "main": "dist/index.js",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "tsc",
+    "package": "esbuild src/index.ts --bundle --platform=node --target=node24 --format=cjs --outfile=dist/index.js --sourcemap --legal-comments=external",
+    "test": "npm run build && node --test test/*.test.mjs",
+    "all": "npm run build && npm run package"
+  },
+  "keywords": [
+    "actions",
+    "github-action",
+    "typos"
+  ],
+  "author": "Noai-oss",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@actions/core": "^3.0.1",
+    "@actions/tool-cache": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1",
+    "esbuild": "^0.27.0",
+    "typescript": "^6.0.3"
+  }
+}

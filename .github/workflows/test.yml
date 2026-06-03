@@ -1,0 +1,46 @@
+name: test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: test on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm test
+
+      - run: npm run package
+
+      - name: Verify packaged action is current
+        run: git diff --exit-code -- dist
+
+      - name: Setup typos
+        id: setup-typos
+        uses: ./
+        with:
+          version: latest
+          github-token: ${{ github.token }}
+
+      - name: Verify typos is on PATH
+        run: typos --version

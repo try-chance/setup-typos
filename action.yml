@@ -1,0 +1,31 @@
+name: "setup-typos"
+description: "Install crate-ci/typos and add it to PATH"
+author: "Noai-oss"
+
+inputs:
+  version:
+    description: "typos version to install. Use 'latest' or a concrete version like '1.47.1'."
+    required: false
+    default: "latest"
+
+  github-token:
+    description: "Optional GitHub token used only when resolving the latest typos release."
+    required: false
+
+outputs:
+  version:
+    description: "Resolved typos version."
+  path:
+    description: "Full path to the typos executable."
+  dir:
+    description: "Directory added to PATH."
+  cache-hit:
+    description: "Whether typos was restored from the local tool cache."
+
+runs:
+  using: "node24"
+  main: "dist/index.js"
+
+branding:
+  icon: "check-circle"
+  color: "blue"
