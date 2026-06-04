@@ -14,7 +14,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Setup typos
-        uses: Noai-oss/setup-typos@v1
+        uses: Noai-oss/setup-typos@v0.0.1
 
       - name: Run typos
         run: |
