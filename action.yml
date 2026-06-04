@@ -9,8 +9,9 @@ inputs:
     default: "latest"
 
   github-token:
-    description: "Optional GitHub token used only when resolving the latest typos release."
+    description: "Optional GitHub token used to fetch the `latest` version without GitHub API rate limits. Actual downloads use public URLs."
     required: false
+    default: ${{ github.token }}
 
 outputs:
   version:

@@ -2,17 +2,20 @@
 
 Install [crate-ci/typos](https://github.com/crate-ci/typos) and add it to `PATH`.
 
-This action uses the GitHub Actions `node24` runtime. Local development requires Node.js 24 or newer.
-
 ```yaml
-steps:
-  - uses: actions/checkout@v5
+jobs:
+  typos-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
 
-  - uses: Noai-oss/setup-typos@v1
-    with:
-      version: latest
+      - name: Setup typos
+        uses: Noai-oss/setup-typos@v1
 
-  - run: typos .
+      - name: Run typos
+        run: |
+          typos .
 ```
 
 ## Inputs
@@ -20,7 +23,7 @@ steps:
 | Name | Default | Description |
 | --- | --- | --- |
 | `version` | `latest` | `typos` version to install. Accepts `latest`, `1.47.1`, or `v1.47.1`. |
-| `github-token` | | Optional token used only when resolving `latest`. |
+| `github-token` | `${{ github.token }}` | Optional. Used to fetch the `latest` version without GitHub API rate limits. Actual downloads use public URLs. |
 
 ## Outputs
 
@@ -40,12 +43,3 @@ The action follows the official `typos` release artifact names and supports:
 | Linux | `x64`, `arm64` |
 | macOS | `x64`, `arm64` |
 | Windows | `x64` |
-
-## Design
-
-| File | Purpose |
-| --- | --- |
-| `src/typos.ts` | `typos` release metadata: owner/repo, supported platform targets, archive extensions, executable names, and download URLs. |
-| `src/index.ts` | Action entrypoint: read inputs, resolve versions, download, extract, cache the executable, add it to PATH, and set outputs. |
-
-The implementation intentionally stays small and `typos`-focused. If another setup action is needed later, copy this shape and change the release metadata instead of introducing a framework too early.
