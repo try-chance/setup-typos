@@ -2,6 +2,9 @@
 
 Install [crate-ci/typos](https://github.com/crate-ci/typos) and add it to `PATH`.
 
+> [!NOTE]
+> This action was developed with assistance from OpenAI Codex.
+
 ```yaml
 jobs:
   typos-check:
