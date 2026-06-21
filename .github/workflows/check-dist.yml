@@ -1,0 +1,132 @@
+name: Check dist
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check_dist:
+    name: Check dist/
+    runs-on: ubuntu-latest
+
+    outputs:
+      stale: ${{ steps.diff.outputs.stale }}
+      diff_stat: ${{ steps.diff.outputs.diff_stat }}
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Remove dist directory
+        run: rm -rf dist
+
+      - run: npm ci
+
+      - run: npm run package
+
+      - name: Compare dist directory
+        id: diff
+        run: |
+          if [ ! -d dist ]; then
+            echo "Expected dist directory does not exist."
+            echo "stale=true" >> "${GITHUB_OUTPUT}"
+            echo "diff_stat=dist directory was not generated" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          if git diff --ignore-space-at-eol --text --quiet -- dist; then
+            echo "stale=false" >> "${GITHUB_OUTPUT}"
+          else
+            echo "Detected uncommitted dist changes:"
+            git diff --ignore-space-at-eol --text -- dist
+            echo "stale=true" >> "${GITHUB_OUTPUT}"
+            {
+              echo "diff_stat<<EOF"
+              git diff --stat -- dist
+              echo "EOF"
+            } >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Upload generated dist
+        if: steps.diff.outputs.stale == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: dist-${{ github.run_id }}-${{ github.run_attempt }}
+          path: dist
+          if-no-files-found: error
+
+      - name: Fail if dist is stale
+        if: steps.diff.outputs.stale == 'true'
+        run: exit 1
+
+  notify_dependabot_dist:
+    name: Notify Dependabot PR
+    needs: check_dist
+    if: >-
+      always() &&
+      needs.check_dist.outputs.stale == 'true' &&
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.user.login == 'dependabot[bot]' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      startsWith(github.event.pull_request.head.ref, 'dependabot/npm_and_yarn/')
+    runs-on: ubuntu-latest
+
+    permissions:
+      issues: write
+
+    steps:
+      - name: Comment on stale Dependabot dist
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          DIFF_STAT: ${{ needs.check_dist.outputs.diff_stat }}
+        run: |
+          marker="<!-- setup-typos-stale-dist -->"
+          body="$(
+            cat <<EOF
+          ${marker}
+          \`dist/index.js\` is stale after this Dependabot npm update.
+
+          This repository commits the bundled GitHub Action in \`dist/\`, so please regenerate and commit the packaged action:
+
+          \`\`\`sh
+          npm ci
+          npm run package
+          git add dist/index.js
+          git commit -m "Update packaged action"
+          \`\`\`
+
+          If \`dist/\` was generated, it is available as the \`dist-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}\` workflow artifact.
+
+          Diff summary:
+
+          \`\`\`text
+          ${DIFF_STAT}
+          \`\`\`
+          EOF
+          )"
+
+          comment_id="$(
+            gh api "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" \
+              --paginate \
+              --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | contains("<!-- setup-typos-stale-dist -->"))) | .id' |
+              head -n 1
+          )"
+
+          if [ -n "${comment_id}" ]; then
+            gh api --method PATCH "repos/${GITHUB_REPOSITORY}/issues/comments/${comment_id}" -f body="${body}"
+          else
+            gh api --method POST "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" -f body="${body}"
+          fi
