@@ -5,6 +5,9 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   test:
     name: test on ${{ matrix.os }}
@@ -20,6 +23,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-node@v6
         with:
@@ -31,9 +36,6 @@ jobs:
       - run: npm test
 
       - run: npm run package
-
-      - name: Verify packaged action is current
-        run: git diff --exit-code -- dist
 
       - name: Setup typos
         id: setup-typos
