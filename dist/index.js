@@ -23198,7 +23198,6 @@ function getArtifact(version, platform2 = process.platform, arch3 = process.arch
   const target = `${targetArch}-${spec.targetSuffix}`;
   const fileName = `${TOOL_NAME}-v${cleanVersion}-${target}.${spec.archiveExt}`;
   return {
-    target,
     archiveExt: spec.archiveExt,
     executable: spec.executable,
     fileName,
@@ -23239,9 +23238,6 @@ async function resolveVersion(requestedVersion, githubToken) {
   }
   return normalizeVersion(version);
 }
-async function extractArchive(archivePath, archiveExt) {
-  return archiveExt === "zip" ? extractZip(archivePath) : extractTar(archivePath);
-}
 async function makeExecutable(filePath) {
   await fs4.access(filePath);
   if (process.platform !== "win32") {
@@ -23264,7 +23260,7 @@ async function installTypos(version) {
   info(`Downloading ${artifact.fileName}`);
   debug(`Download URL: ${artifact.url}`);
   const archivePath = await downloadTool(artifact.url);
-  const extractedDirectory = await extractArchive(archivePath, artifact.archiveExt);
+  const extractedDirectory = artifact.archiveExt === "zip" ? await extractZip(archivePath) : await extractTar(archivePath);
   const extractedExecutable = path6.join(extractedDirectory, artifact.executable);
   await makeExecutable(extractedExecutable);
   const cachedDirectoryAfterInstall = await cacheFile(

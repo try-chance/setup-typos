@@ -1,6 +1,6 @@
-const TOOL_NAME = "typos";
-const OWNER = "crate-ci";
-const REPO = "typos";
+export const TOOL_NAME = "typos";
+export const OWNER = "crate-ci";
+export const REPO = "typos";
 
 type ArchiveExt = "tar.gz" | "zip";
 type SupportedArch = "x64" | "arm64";
@@ -16,7 +16,6 @@ type PlatformSpec = {
 };
 
 export type TyposArtifact = {
-  target: string;
   archiveExt: ArchiveExt;
   executable: string;
   fileName: string;
@@ -99,12 +98,9 @@ export function getArtifact(
   const fileName = `${TOOL_NAME}-v${cleanVersion}-${target}.${spec.archiveExt}`;
 
   return {
-    target,
     archiveExt: spec.archiveExt,
     executable: spec.executable,
     fileName,
     url: `https://github.com/${OWNER}/${REPO}/releases/download/v${cleanVersion}/${fileName}`
   };
 }
-
-export { TOOL_NAME, OWNER, REPO };

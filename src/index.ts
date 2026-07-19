@@ -61,10 +61,6 @@ async function resolveVersion(requestedVersion: string, githubToken: string): Pr
   return normalizeVersion(version);
 }
 
-async function extractArchive(archivePath: string, archiveExt: "tar.gz" | "zip"): Promise<string> {
-  return archiveExt === "zip" ? tc.extractZip(archivePath) : tc.extractTar(archivePath);
-}
-
 async function makeExecutable(filePath: string): Promise<void> {
   // access() gives a clear failure if extraction or cache lookup did not
   // produce the expected binary.
@@ -95,7 +91,8 @@ async function installTypos(version: string): Promise<InstallResult> {
   core.debug(`Download URL: ${artifact.url}`);
 
   const archivePath = await tc.downloadTool(artifact.url);
-  const extractedDirectory = await extractArchive(archivePath, artifact.archiveExt);
+  const extractedDirectory =
+    artifact.archiveExt === "zip" ? await tc.extractZip(archivePath) : await tc.extractTar(archivePath);
   const extractedExecutable = path.join(extractedDirectory, artifact.executable);
   await makeExecutable(extractedExecutable);
 

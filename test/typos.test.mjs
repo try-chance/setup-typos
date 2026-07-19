@@ -10,7 +10,6 @@ test("normalizes release tags", () => {
 
 test("builds linux x64 artifact metadata", () => {
   assert.deepEqual(getArtifact("1.47.1", "linux", "x64"), {
-    target: "x86_64-unknown-linux-musl",
     archiveExt: "tar.gz",
     executable: "typos",
     fileName: "typos-v1.47.1-x86_64-unknown-linux-musl.tar.gz",
@@ -19,7 +18,10 @@ test("builds linux x64 artifact metadata", () => {
 });
 
 test("builds macOS arm64 artifact metadata", () => {
-  assert.equal(getArtifact("v1.47.1", "darwin", "arm64").target, "aarch64-apple-darwin");
+  assert.equal(
+    getArtifact("v1.47.1", "darwin", "arm64").fileName,
+    "typos-v1.47.1-aarch64-apple-darwin.tar.gz"
+  );
 });
 
 test("builds Windows x64 artifact metadata", () => {
