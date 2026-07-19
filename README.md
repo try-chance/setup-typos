@@ -6,19 +6,15 @@ Install [crate-ci/typos](https://github.com/crate-ci/typos) and add it to `PATH`
 > This action was developed with assistance from OpenAI Codex.
 
 ```yaml
-jobs:
-  typos-check:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
+steps:
+  - name: Checkout code
+    uses: actions/checkout@v7
 
-      - name: Setup typos
-        uses: Noai-oss/setup-typos@v0.0.1
+  - name: Setup typos
+    uses: try-chance/setup-typos@v0.0.1
 
-      - name: Run typos
-        run: |
-          typos .
+  - name: Run typos
+    run: typos .
 ```
 
 ## Inputs
