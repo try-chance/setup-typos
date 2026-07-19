@@ -2,15 +2,12 @@
 
 Install [crate-ci/typos](https://github.com/crate-ci/typos) and add it to `PATH`.
 
-Add the following steps after checking out your repository:
-
 ```yaml
-steps:
-  - name: Setup typos
-    uses: try-chance/setup-typos@v0.0.1
+- name: Setup typos
+  uses: try-chance/setup-typos@v0.0.1
 
-  - name: Run typos
-    run: typos .
+- name: Run typos
+  run: typos .
 ```
 
 ## Inputs
