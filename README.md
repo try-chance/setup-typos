@@ -2,9 +2,6 @@
 
 Install [crate-ci/typos](https://github.com/crate-ci/typos) and add it to `PATH`.
 
-> [!NOTE]
-> This action was developed with assistance from OpenAI Codex.
-
 ```yaml
 steps:
   - name: Checkout code
@@ -19,15 +16,15 @@ steps:
 
 ## Inputs
 
-| Name | Default | Description |
-| --- | --- | --- |
-| `version` | `latest` | `typos` version to install. Accepts `latest`, `1.47.1`, or `v1.47.1`. |
-| `github-token` | `${{ github.token }}` | Optional. Used to fetch the `latest` version without GitHub API rate limits. Actual downloads use public URLs. |
+| Input | Default | Description |
+| :--- | :---: | :--- |
+| `version` | `latest` | Version to install. Accepts `latest`, `1.47.1`, or `v1.47.1`. |
+| `github-token` | `${{ github.token }}` | Optional token used to resolve `latest` without GitHub API rate limits. Downloads use public URLs. |
 
 ## Outputs
 
-| Name | Description |
-| --- | --- |
+| Output | Description |
+| :--- | :--- |
 | `version` | Resolved `typos` version. |
 | `path` | Full path to the installed executable. |
 | `dir` | Directory added to `PATH`. |
@@ -37,8 +34,8 @@ steps:
 
 The action follows the official `typos` release artifact names and supports:
 
-| OS | Architectures |
-| --- | --- |
-| Linux | `x64`, `arm64` |
-| macOS | `x64`, `arm64` |
-| Windows | `x64` |
+| Operating system | Architectures |
+| :--- | :---: |
+| **Linux** | `x64`, `arm64` |
+| **macOS** | `x64`, `arm64` |
+| **Windows** | `x64` |
