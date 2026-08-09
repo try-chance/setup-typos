@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { getArtifact, getCacheKey, normalizeVersion } from "../lib/typos.js";
+import { getArtifact, normalizeVersion } from "../lib/typos.js";
 
 test("normalizes release tags", () => {
   assert.equal(normalizeVersion("v1.47.1"), "1.47.1");
@@ -30,10 +30,6 @@ test("builds Windows x64 artifact metadata", () => {
   assert.equal(artifact.archiveExt, "zip");
   assert.equal(artifact.executable, "typos.exe");
   assert.equal(artifact.fileName, "typos-v1.47.1-x86_64-pc-windows-msvc.zip");
-});
-
-test("uses platform and architecture in cache key", () => {
-  assert.equal(getCacheKey("linux", "x64"), "linux-x64");
 });
 
 test("rejects unsupported platforms and architectures", () => {

@@ -1074,14 +1074,14 @@ var require_util = __commonJS({
         }
         const port = url.port != null ? url.port : url.protocol === "https:" ? 443 : 80;
         let origin = url.origin != null ? url.origin : `${url.protocol || ""}//${url.hostname || ""}:${port}`;
-        let path7 = url.path != null ? url.path : `${url.pathname || ""}${url.search || ""}`;
+        let path8 = url.path != null ? url.path : `${url.pathname || ""}${url.search || ""}`;
         if (origin[origin.length - 1] === "/") {
           origin = origin.slice(0, origin.length - 1);
         }
-        if (path7 && path7[0] !== "/") {
-          path7 = `/${path7}`;
+        if (path8 && path8[0] !== "/") {
+          path8 = `/${path8}`;
         }
-        return new URL(`${origin}${path7}`);
+        return new URL(`${origin}${path8}`);
       }
       if (!isHttpOrHttpsPrefixed(url.origin || url.protocol)) {
         throw new InvalidArgumentError("Invalid URL protocol: the URL must start with `http:` or `https:`.");
@@ -1532,39 +1532,39 @@ var require_diagnostics = __commonJS({
       });
       diagnosticsChannel.channel("undici:client:sendHeaders").subscribe((evt) => {
         const {
-          request: { method, path: path7, origin }
+          request: { method, path: path8, origin }
         } = evt;
-        debuglog("sending request to %s %s/%s", method, origin, path7);
+        debuglog("sending request to %s %s/%s", method, origin, path8);
       });
       diagnosticsChannel.channel("undici:request:headers").subscribe((evt) => {
         const {
-          request: { method, path: path7, origin },
+          request: { method, path: path8, origin },
           response: { statusCode }
         } = evt;
         debuglog(
           "received response to %s %s/%s - HTTP %d",
           method,
           origin,
-          path7,
+          path8,
           statusCode
         );
       });
       diagnosticsChannel.channel("undici:request:trailers").subscribe((evt) => {
         const {
-          request: { method, path: path7, origin }
+          request: { method, path: path8, origin }
         } = evt;
-        debuglog("trailers received from %s %s/%s", method, origin, path7);
+        debuglog("trailers received from %s %s/%s", method, origin, path8);
       });
       diagnosticsChannel.channel("undici:request:error").subscribe((evt) => {
         const {
-          request: { method, path: path7, origin },
+          request: { method, path: path8, origin },
           error: error2
         } = evt;
         debuglog(
           "request to %s %s/%s errored - %s",
           method,
           origin,
-          path7,
+          path8,
           error2.message
         );
       });
@@ -1613,9 +1613,9 @@ var require_diagnostics = __commonJS({
         });
         diagnosticsChannel.channel("undici:client:sendHeaders").subscribe((evt) => {
           const {
-            request: { method, path: path7, origin }
+            request: { method, path: path8, origin }
           } = evt;
-          debuglog("sending request to %s %s/%s", method, origin, path7);
+          debuglog("sending request to %s %s/%s", method, origin, path8);
         });
       }
       diagnosticsChannel.channel("undici:websocket:open").subscribe((evt) => {
@@ -1678,7 +1678,7 @@ var require_request = __commonJS({
     var kHandler = /* @__PURE__ */ Symbol("handler");
     var Request = class {
       constructor(origin, {
-        path: path7,
+        path: path8,
         method,
         body,
         headers,
@@ -1693,11 +1693,11 @@ var require_request = __commonJS({
         expectContinue,
         servername
       }, handler) {
-        if (typeof path7 !== "string") {
+        if (typeof path8 !== "string") {
           throw new InvalidArgumentError("path must be a string");
-        } else if (path7[0] !== "/" && !(path7.startsWith("http://") || path7.startsWith("https://")) && method !== "CONNECT") {
+        } else if (path8[0] !== "/" && !(path8.startsWith("http://") || path8.startsWith("https://")) && method !== "CONNECT") {
           throw new InvalidArgumentError("path must be an absolute URL or start with a slash");
-        } else if (invalidPathRegex.test(path7)) {
+        } else if (invalidPathRegex.test(path8)) {
           throw new InvalidArgumentError("invalid request path");
         }
         if (typeof method !== "string") {
@@ -1763,7 +1763,7 @@ var require_request = __commonJS({
         this.completed = false;
         this.aborted = false;
         this.upgrade = upgrade || null;
-        this.path = query ? buildURL(path7, query) : path7;
+        this.path = query ? buildURL(path8, query) : path8;
         this.origin = origin;
         this.idempotent = idempotent == null ? method === "HEAD" || method === "GET" : idempotent;
         this.blocking = blocking == null ? false : blocking;
@@ -6386,7 +6386,7 @@ var require_client_h1 = __commonJS({
       return method !== "GET" && method !== "HEAD" && method !== "OPTIONS" && method !== "TRACE" && method !== "CONNECT";
     }
     function writeH1(client, request) {
-      const { method, path: path7, host, upgrade, blocking, reset } = request;
+      const { method, path: path8, host, upgrade, blocking, reset } = request;
       let { body, headers, contentLength } = request;
       const expectsPayload = method === "PUT" || method === "POST" || method === "PATCH" || method === "QUERY" || method === "PROPFIND" || method === "PROPPATCH";
       if (util2.isFormDataLike(body)) {
@@ -6453,7 +6453,7 @@ var require_client_h1 = __commonJS({
       if (blocking) {
         socket[kBlocking] = true;
       }
-      let header = `${method} ${path7} HTTP/1.1\r
+      let header = `${method} ${path8} HTTP/1.1\r
 `;
       if (typeof host === "string") {
         header += `host: ${host}\r
@@ -6979,7 +6979,7 @@ var require_client_h2 = __commonJS({
     }
     function writeH2(client, request) {
       const session = client[kHTTP2Session];
-      const { method, path: path7, host, upgrade, expectContinue, signal, headers: reqHeaders } = request;
+      const { method, path: path8, host, upgrade, expectContinue, signal, headers: reqHeaders } = request;
       let { body } = request;
       if (upgrade) {
         util2.errorRequest(client, request, new Error("Upgrade not supported for H2"));
@@ -7046,7 +7046,7 @@ var require_client_h2 = __commonJS({
         });
         return true;
       }
-      headers[HTTP2_HEADER_PATH] = path7;
+      headers[HTTP2_HEADER_PATH] = path8;
       headers[HTTP2_HEADER_SCHEME] = "https";
       const expectsPayload = method === "PUT" || method === "POST" || method === "PATCH";
       if (body && typeof body.read === "function") {
@@ -7399,9 +7399,9 @@ var require_redirect_handler = __commonJS({
           return this.handler.onHeaders(statusCode, headers, resume, statusText);
         }
         const { origin, pathname, search } = util2.parseURL(new URL(this.location, this.opts.origin && new URL(this.opts.path, this.opts.origin)));
-        const path7 = search ? `${pathname}${search}` : pathname;
+        const path8 = search ? `${pathname}${search}` : pathname;
         this.opts.headers = cleanRequestHeaders(this.opts.headers, statusCode === 303, this.opts.origin !== origin);
-        this.opts.path = path7;
+        this.opts.path = path8;
         this.opts.origin = origin;
         this.opts.maxRedirections = 0;
         this.opts.query = null;
@@ -8636,10 +8636,10 @@ var require_proxy_agent = __commonJS({
         };
         const {
           origin,
-          path: path7 = "/",
+          path: path8 = "/",
           headers = {}
         } = opts;
-        opts.path = origin + path7;
+        opts.path = origin + path8;
         if (!("host" in headers) && !("Host" in headers)) {
           const { host } = new URL2(origin);
           headers.host = host;
@@ -10560,20 +10560,20 @@ var require_mock_utils = __commonJS({
       }
       return true;
     }
-    function safeUrl(path7) {
-      if (typeof path7 !== "string") {
-        return path7;
+    function safeUrl(path8) {
+      if (typeof path8 !== "string") {
+        return path8;
       }
-      const pathSegments = path7.split("?");
+      const pathSegments = path8.split("?");
       if (pathSegments.length !== 2) {
-        return path7;
+        return path8;
       }
       const qp = new URLSearchParams(pathSegments.pop());
       qp.sort();
       return [...pathSegments, qp.toString()].join("?");
     }
-    function matchKey(mockDispatch2, { path: path7, method, body, headers }) {
-      const pathMatch = matchValue(mockDispatch2.path, path7);
+    function matchKey(mockDispatch2, { path: path8, method, body, headers }) {
+      const pathMatch = matchValue(mockDispatch2.path, path8);
       const methodMatch = matchValue(mockDispatch2.method, method);
       const bodyMatch = typeof mockDispatch2.body !== "undefined" ? matchValue(mockDispatch2.body, body) : true;
       const headersMatch = matchHeaders(mockDispatch2, headers);
@@ -10595,7 +10595,7 @@ var require_mock_utils = __commonJS({
     function getMockDispatch(mockDispatches, key) {
       const basePath = key.query ? buildURL(key.path, key.query) : key.path;
       const resolvedPath = typeof basePath === "string" ? safeUrl(basePath) : basePath;
-      let matchedMockDispatches = mockDispatches.filter(({ consumed }) => !consumed).filter(({ path: path7 }) => matchValue(safeUrl(path7), resolvedPath));
+      let matchedMockDispatches = mockDispatches.filter(({ consumed }) => !consumed).filter(({ path: path8 }) => matchValue(safeUrl(path8), resolvedPath));
       if (matchedMockDispatches.length === 0) {
         throw new MockNotMatchedError(`Mock dispatch not matched for path '${resolvedPath}'`);
       }
@@ -10633,9 +10633,9 @@ var require_mock_utils = __commonJS({
       }
     }
     function buildKey(opts) {
-      const { path: path7, method, body, headers, query } = opts;
+      const { path: path8, method, body, headers, query } = opts;
       return {
-        path: path7,
+        path: path8,
         method,
         body,
         headers,
@@ -11098,10 +11098,10 @@ var require_pending_interceptors_formatter = __commonJS({
       }
       format(pendingInterceptors) {
         const withPrettyHeaders = pendingInterceptors.map(
-          ({ method, path: path7, data: { statusCode }, persist, times, timesInvoked, origin }) => ({
+          ({ method, path: path8, data: { statusCode }, persist, times, timesInvoked, origin }) => ({
             Method: method,
             Origin: origin,
-            Path: path7,
+            Path: path8,
             "Status code": statusCode,
             Persistent: persist ? PERSISTENT : NOT_PERSISTENT,
             Invocations: timesInvoked,
@@ -15982,9 +15982,9 @@ var require_util6 = __commonJS({
         }
       }
     }
-    function validateCookiePath(path7) {
-      for (let i = 0; i < path7.length; ++i) {
-        const code = path7.charCodeAt(i);
+    function validateCookiePath(path8) {
+      for (let i = 0; i < path8.length; ++i) {
+        const code = path8.charCodeAt(i);
         if (code < 32 || // exclude CTLs (0-31)
         code === 127 || // DEL
         code === 59) {
@@ -18678,11 +18678,11 @@ var require_undici = __commonJS({
           if (typeof opts.path !== "string") {
             throw new InvalidArgumentError("invalid opts.path");
           }
-          let path7 = opts.path;
+          let path8 = opts.path;
           if (!opts.path.startsWith("/")) {
-            path7 = `/${path7}`;
+            path8 = `/${path8}`;
           }
-          url = new URL(util2.parseOrigin(url).origin + path7);
+          url = new URL(util2.parseOrigin(url).origin + path8);
         } else {
           if (!opts) {
             opts = typeof url === "object" ? url : {};
@@ -23140,6 +23140,9 @@ function _getGlobal(key, defaultValue) {
 }
 
 // src/index.ts
+import * as path7 from "node:path";
+
+// src/cache.ts
 import * as fs4 from "node:fs/promises";
 import * as path6 from "node:path";
 
@@ -23147,34 +23150,13 @@ import * as path6 from "node:path";
 var TOOL_NAME = "typos";
 var OWNER = "crate-ci";
 var REPO = "typos";
-var PLATFORMS = {
-  linux: {
-    targetSuffix: "unknown-linux-musl",
-    archiveExt: "tar.gz",
-    executable: TOOL_NAME,
-    arches: {
-      x64: "x86_64",
-      arm64: "aarch64"
-    }
-  },
-  darwin: {
-    targetSuffix: "apple-darwin",
-    archiveExt: "tar.gz",
-    executable: TOOL_NAME,
-    arches: {
-      x64: "x86_64",
-      arm64: "aarch64"
-    }
-  },
-  win32: {
-    targetSuffix: "pc-windows-msvc",
-    archiveExt: "zip",
-    executable: `${TOOL_NAME}.exe`,
-    arches: {
-      x64: "x86_64"
-    }
-  }
-};
+var TARGET_TRIPLES = /* @__PURE__ */ new Map([
+  ["linux-x64", "x86_64-unknown-linux-musl"],
+  ["linux-arm64", "aarch64-unknown-linux-musl"],
+  ["darwin-x64", "x86_64-apple-darwin"],
+  ["darwin-arm64", "aarch64-apple-darwin"],
+  ["win32-x64", "x86_64-pc-windows-msvc"]
+]);
 function normalizeVersion(version) {
   const normalized = version.trim().replace(/^v/i, "");
   if (!normalized) {
@@ -23182,27 +23164,56 @@ function normalizeVersion(version) {
   }
   return normalized;
 }
-function getCacheKey(platform2 = process.platform, arch3 = process.arch) {
-  return `${platform2}-${arch3}`;
-}
 function getArtifact(version, platform2 = process.platform, arch3 = process.arch) {
-  const spec = PLATFORMS[platform2];
-  if (!spec) {
+  if (platform2 !== "linux" && platform2 !== "darwin" && platform2 !== "win32") {
     throw new Error(`Unsupported platform: ${platform2}`);
   }
-  const targetArch = spec.arches[arch3];
-  if (!targetArch) {
+  const targetTriple = TARGET_TRIPLES.get(`${platform2}-${arch3}`);
+  if (!targetTriple) {
     throw new Error(`Unsupported platform and architecture: ${platform2}/${arch3}`);
   }
   const cleanVersion = normalizeVersion(version);
-  const target = `${targetArch}-${spec.targetSuffix}`;
-  const fileName = `${TOOL_NAME}-v${cleanVersion}-${target}.${spec.archiveExt}`;
+  const archiveExt = platform2 === "win32" ? "zip" : "tar.gz";
+  const executable = platform2 === "win32" ? `${TOOL_NAME}.exe` : TOOL_NAME;
+  const fileName = `${TOOL_NAME}-v${cleanVersion}-${targetTriple}.${archiveExt}`;
   return {
-    archiveExt: spec.archiveExt,
-    executable: spec.executable,
+    archiveExt,
+    executable,
     fileName,
     url: `https://github.com/${OWNER}/${REPO}/releases/download/v${cleanVersion}/${fileName}`
   };
+}
+
+// src/cache.ts
+function getCacheKey() {
+  return `${process.platform}-${process.arch}`;
+}
+async function makeExecutable(filePath) {
+  await fs4.access(filePath);
+  if (process.platform !== "win32") {
+    await fs4.chmod(filePath, 493);
+  }
+}
+async function findCachedExecutable(version, executable) {
+  const directory = find(TOOL_NAME, version, getCacheKey());
+  if (!directory) {
+    return void 0;
+  }
+  const executablePath = path6.join(directory, executable);
+  await makeExecutable(executablePath);
+  return executablePath;
+}
+async function cacheExecutable(sourcePath, version, executable) {
+  const directory = await cacheFile(
+    sourcePath,
+    executable,
+    TOOL_NAME,
+    version,
+    getCacheKey()
+  );
+  const executablePath = path6.join(directory, executable);
+  await makeExecutable(executablePath);
+  return executablePath;
 }
 
 // src/index.ts
@@ -23238,22 +23249,13 @@ async function resolveVersion(requestedVersion, githubToken) {
   }
   return normalizeVersion(version);
 }
-async function makeExecutable(filePath) {
-  await fs4.access(filePath);
-  if (process.platform !== "win32") {
-    await fs4.chmod(filePath, 493);
-  }
-}
 async function installTypos(version) {
   const artifact = getArtifact(version);
-  const cacheKey = getCacheKey();
-  const cachedDirectory = find(TOOL_NAME, version, cacheKey);
-  if (cachedDirectory) {
-    const cachedExecutable2 = path6.join(cachedDirectory, artifact.executable);
-    await makeExecutable(cachedExecutable2);
+  const cachedExecutable = await findCachedExecutable(version, artifact.executable);
+  if (cachedExecutable) {
     return {
-      executablePath: cachedExecutable2,
-      directory: cachedDirectory,
+      executablePath: cachedExecutable,
+      directory: path7.dirname(cachedExecutable),
       cacheHit: true
     };
   }
@@ -23261,20 +23263,15 @@ async function installTypos(version) {
   debug(`Download URL: ${artifact.url}`);
   const archivePath = await downloadTool(artifact.url);
   const extractedDirectory = artifact.archiveExt === "zip" ? await extractZip(archivePath) : await extractTar(archivePath);
-  const extractedExecutable = path6.join(extractedDirectory, artifact.executable);
-  await makeExecutable(extractedExecutable);
-  const cachedDirectoryAfterInstall = await cacheFile(
+  const extractedExecutable = path7.join(extractedDirectory, artifact.executable);
+  const executablePath = await cacheExecutable(
     extractedExecutable,
-    artifact.executable,
-    TOOL_NAME,
     version,
-    cacheKey
+    artifact.executable
   );
-  const cachedExecutable = path6.join(cachedDirectoryAfterInstall, artifact.executable);
-  await makeExecutable(cachedExecutable);
   return {
-    executablePath: cachedExecutable,
-    directory: cachedDirectoryAfterInstall,
+    executablePath,
+    directory: path7.dirname(executablePath),
     cacheHit: false
   };
 }
@@ -23288,7 +23285,6 @@ async function run() {
   addPath(result.directory);
   setOutput("version", version);
   setOutput("path", result.executablePath);
-  setOutput("dir", result.directory);
   setOutput("cache-hit", String(result.cacheHit));
   info(`Installed typos v${version}`);
   info(`Added ${result.directory} to PATH`);

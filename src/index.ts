@@ -1,23 +1,15 @@
 import * as core from "@actions/core";
 import * as tc from "@actions/tool-cache";
 
-import * as fs from "node:fs/promises";
 import * as path from "node:path";
 
-import { getArtifact, getCacheKey, normalizeVersion, OWNER, REPO, TOOL_NAME } from "./typos.js";
-
-type InstallResult = {
-  executablePath: string;
-  directory: string;
-  cacheHit: boolean;
-};
+import { cacheExecutable, findCachedExecutable } from "./cache.js";
+import { getArtifact, normalizeVersion, OWNER, REPO } from "./typos.js";
 
 type GitHubReleaseResponse = {
   tag_name?: string;
 };
 
-// Resolve "latest" through the GitHub Releases API. Concrete versions skip
-// this network request entirely.
 async function resolveLatestVersion(githubToken: string): Promise<string> {
   const headers: Record<string, string> = {
     Accept: "application/vnd.github+json",
@@ -49,8 +41,6 @@ async function resolveLatestVersion(githubToken: string): Promise<string> {
   return normalizeVersion(release.tag_name);
 }
 
-// The action accepts "latest", "v1.47.1", or "1.47.1"; the rest of the code
-// works with the normalized form.
 async function resolveVersion(requestedVersion: string, githubToken: string): Promise<string> {
   const version = requestedVersion.trim();
 
@@ -61,28 +51,14 @@ async function resolveVersion(requestedVersion: string, githubToken: string): Pr
   return normalizeVersion(version);
 }
 
-async function makeExecutable(filePath: string): Promise<void> {
-  // access() gives a clear failure if extraction or cache lookup did not
-  // produce the expected binary.
-  await fs.access(filePath);
-
-  if (process.platform !== "win32") {
-    await fs.chmod(filePath, 0o755);
-  }
-}
-
-async function installTypos(version: string): Promise<InstallResult> {
+async function installTypos(version: string) {
   const artifact = getArtifact(version);
-  const cacheKey = getCacheKey();
-  const cachedDirectory = tc.find(TOOL_NAME, version, cacheKey);
+  const cachedExecutable = await findCachedExecutable(version, artifact.executable);
 
-  if (cachedDirectory) {
-    const cachedExecutable = path.join(cachedDirectory, artifact.executable);
-    await makeExecutable(cachedExecutable);
-
+  if (cachedExecutable) {
     return {
       executablePath: cachedExecutable,
-      directory: cachedDirectory,
+      directory: path.dirname(cachedExecutable),
       cacheHit: true
     };
   }
@@ -94,23 +70,15 @@ async function installTypos(version: string): Promise<InstallResult> {
   const extractedDirectory =
     artifact.archiveExt === "zip" ? await tc.extractZip(archivePath) : await tc.extractTar(archivePath);
   const extractedExecutable = path.join(extractedDirectory, artifact.executable);
-  await makeExecutable(extractedExecutable);
-
-  // Cache only the executable directory we expose on PATH. The typos release
-  // archives are simple, so a full extracted archive cache would be needless.
-  const cachedDirectoryAfterInstall = await tc.cacheFile(
+  const executablePath = await cacheExecutable(
     extractedExecutable,
-    artifact.executable,
-    TOOL_NAME,
     version,
-    cacheKey
+    artifact.executable
   );
-  const cachedExecutable = path.join(cachedDirectoryAfterInstall, artifact.executable);
-  await makeExecutable(cachedExecutable);
 
   return {
-    executablePath: cachedExecutable,
-    directory: cachedDirectoryAfterInstall,
+    executablePath,
+    directory: path.dirname(executablePath),
     cacheHit: false
   };
 }
@@ -119,7 +87,7 @@ async function run(): Promise<void> {
   const githubToken = core.getInput("github-token") || process.env.GITHUB_TOKEN || "";
 
   if (githubToken) {
-    // Avoid leaking an explicitly supplied token or ambient GITHUB_TOKEN in logs.
+    // Mask both input and ambient tokens in logs.
     core.setSecret(githubToken);
   }
 
@@ -129,7 +97,6 @@ async function run(): Promise<void> {
   core.addPath(result.directory);
   core.setOutput("version", version);
   core.setOutput("path", result.executablePath);
-  core.setOutput("dir", result.directory);
   core.setOutput("cache-hit", String(result.cacheHit));
 
   core.info(`Installed typos v${version}`);
