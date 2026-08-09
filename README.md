@@ -12,19 +12,18 @@ Install [crate-ci/typos](https://github.com/crate-ci/typos) and add it to `PATH`
 
 ## Inputs
 
-| Input | Default | Description |
-| :--- | :---: | :--- |
-| `version` | `latest` | Version to install. Accepts `latest`, `1.47.1`, or `v1.47.1`. |
-| `github-token` | `${{ github.token }}` | Optional token used to resolve `latest` without GitHub API rate limits. Downloads use public URLs. |
+| Input | Required | Default | Description |
+| :--- | :---: | :---: | :--- |
+| `version` | No | `latest` | Version to install. Accepts `latest`, a version such as `1.47.1`, or a release tag such as `v1.47.1`. |
+| `github-token` | No | `${{ github.token }}` | Token used to resolve `latest` with an authenticated GitHub API request. Downloads use public URLs. |
 
 ## Outputs
 
 | Output | Description |
 | :--- | :--- |
-| `version` | Resolved `typos` version. |
+| `version` | Installed `typos` version without the leading `v`. |
 | `path` | Full path to the installed executable. |
-| `dir` | Directory added to `PATH`. |
-| `cache-hit` | `true` when the executable was restored from the runner tool cache. |
+| `cache-hit` | `true` when restored from the runner tool cache; otherwise `false`. |
 
 ## Supported Runners
 

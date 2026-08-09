@@ -2,60 +2,16 @@ export const TOOL_NAME = "typos";
 export const OWNER = "crate-ci";
 export const REPO = "typos";
 
-type ArchiveExt = "tar.gz" | "zip";
-type SupportedArch = "x64" | "arm64";
-type SupportedPlatform = "linux" | "darwin" | "win32";
+// Only include target triples published in crate-ci/typos release assets.
+const TARGET_TRIPLES = new Map<string, string>([
+  ["linux-x64", "x86_64-unknown-linux-musl"],
+  ["linux-arm64", "aarch64-unknown-linux-musl"],
+  ["darwin-x64", "x86_64-apple-darwin"],
+  ["darwin-arm64", "aarch64-apple-darwin"],
+  ["win32-x64", "x86_64-pc-windows-msvc"]
+]);
 
-// Describes the part of the typos release asset name that varies by runner.
-// Example: typos-v1.47.1-x86_64-unknown-linux-musl.tar.gz
-type PlatformSpec = {
-  targetSuffix: string;
-  archiveExt: ArchiveExt;
-  executable: string;
-  arches: Partial<Record<SupportedArch, string>>;
-};
-
-export type TyposArtifact = {
-  archiveExt: ArchiveExt;
-  executable: string;
-  fileName: string;
-  url: string;
-};
-
-// Keep this table limited to artifacts that crate-ci/typos actually publishes.
-// For example, Windows arm64 is intentionally omitted because there is no
-// aarch64-pc-windows-msvc asset in current typos releases.
-const PLATFORMS: Record<SupportedPlatform, PlatformSpec> = {
-  linux: {
-    targetSuffix: "unknown-linux-musl",
-    archiveExt: "tar.gz",
-    executable: TOOL_NAME,
-    arches: {
-      x64: "x86_64",
-      arm64: "aarch64"
-    }
-  },
-  darwin: {
-    targetSuffix: "apple-darwin",
-    archiveExt: "tar.gz",
-    executable: TOOL_NAME,
-    arches: {
-      x64: "x86_64",
-      arm64: "aarch64"
-    }
-  },
-  win32: {
-    targetSuffix: "pc-windows-msvc",
-    archiveExt: "zip",
-    executable: `${TOOL_NAME}.exe`,
-    arches: {
-      x64: "x86_64"
-    }
-  }
-};
-
-// Accept both "1.47.1" and "v1.47.1" as inputs while using the plain semver
-// string for tool-cache lookups.
+// Release tags include "v"; internally versions use plain semver.
 export function normalizeVersion(version: string): string {
   const normalized = version.trim().replace(/^v/i, "");
 
@@ -66,40 +22,29 @@ export function normalizeVersion(version: string): string {
   return normalized;
 }
 
-export function getCacheKey(
-  platform: NodeJS.Platform = process.platform,
-  arch: NodeJS.Architecture = process.arch
-): string {
-  // @actions/tool-cache supports an optional arch key. Including the platform
-  // prevents collisions on long-lived self-hosted runners.
-  return `${platform}-${arch}`;
-}
-
-// Build the exact GitHub release asset metadata for the current runner.
 export function getArtifact(
   version: string,
   platform: NodeJS.Platform = process.platform,
   arch: NodeJS.Architecture = process.arch
-): TyposArtifact {
-  const spec = PLATFORMS[platform as SupportedPlatform];
-
-  if (!spec) {
+) {
+  if (platform !== "linux" && platform !== "darwin" && platform !== "win32") {
     throw new Error(`Unsupported platform: ${platform}`);
   }
 
-  const targetArch = spec.arches[arch as SupportedArch];
+  const targetTriple = TARGET_TRIPLES.get(`${platform}-${arch}`);
 
-  if (!targetArch) {
+  if (!targetTriple) {
     throw new Error(`Unsupported platform and architecture: ${platform}/${arch}`);
   }
 
   const cleanVersion = normalizeVersion(version);
-  const target = `${targetArch}-${spec.targetSuffix}`;
-  const fileName = `${TOOL_NAME}-v${cleanVersion}-${target}.${spec.archiveExt}`;
+  const archiveExt = platform === "win32" ? "zip" : "tar.gz";
+  const executable = platform === "win32" ? `${TOOL_NAME}.exe` : TOOL_NAME;
+  const fileName = `${TOOL_NAME}-v${cleanVersion}-${targetTriple}.${archiveExt}`;
 
   return {
-    archiveExt: spec.archiveExt,
-    executable: spec.executable,
+    archiveExt,
+    executable,
     fileName,
     url: `https://github.com/${OWNER}/${REPO}/releases/download/v${cleanVersion}/${fileName}`
   };

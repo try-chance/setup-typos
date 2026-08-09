@@ -21,11 +21,8 @@
   },
   "scripts": {
     "build": "tsc",
-    "bundle": "npm run package",
     "package": "node scripts/build.mjs",
-    "package:watch": "npm run package -- --watch",
-    "test": "npm run build && node --test test/*.test.mjs",
-    "all": "npm run build && npm run package"
+    "test": "npm run build && node --test test/*.test.mjs"
   },
   "keywords": [
     "actions",

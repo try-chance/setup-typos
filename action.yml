@@ -4,24 +4,22 @@ author: "Noai-oss"
 
 inputs:
   version:
-    description: "typos version to install. Use 'latest' or a concrete version like '1.47.1'."
+    description: "Version to install. Accepts 'latest', a version such as '1.47.1', or a release tag such as 'v1.47.1'."
     required: false
     default: "latest"
 
   github-token:
-    description: "Optional GitHub token used to fetch the `latest` version without GitHub API rate limits. Actual downloads use public URLs."
+    description: "Token used to resolve 'latest' with an authenticated GitHub API request. Downloads use public URLs."
     required: false
     default: ${{ github.token }}
 
 outputs:
   version:
-    description: "Resolved typos version."
+    description: "Installed typos version without the leading 'v'."
   path:
-    description: "Full path to the typos executable."
-  dir:
-    description: "Directory added to PATH."
+    description: "Full path to the installed executable."
   cache-hit:
-    description: "Whether typos was restored from the local tool cache."
+    description: "Whether typos was restored from the runner tool cache."
 
 runs:
   using: "node24"
