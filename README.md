@@ -4,7 +4,7 @@ Install [crate-ci/typos](https://github.com/crate-ci/typos) and add it to `PATH`
 
 ```yaml
 - name: Setup typos
-  uses: try-chance/setup-typos@v0.0.1
+  uses: try-chance/setup-typos@v0.0.2
 
 - name: Run typos
   run: typos .
