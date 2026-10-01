@@ -1,6 +1,8 @@
 version: 2
 updates:
   - package-ecosystem: github-actions
+    assignees:
+      - "Noai-oss"
     directory: /
     schedule:
       interval: weekly
@@ -11,6 +13,8 @@ updates:
           - patch
 
   - package-ecosystem: npm
+    assignees:
+      - "Noai-oss"
     directory: /
     schedule:
       interval: weekly
