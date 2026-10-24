@@ -4,7 +4,7 @@ Install [crate-ci/typos](https://github.com/crate-ci/typos) and add it to `PATH`
 
 ```yaml
 - name: Setup typos
-  uses: try-chance/setup-typos@v0.0.2
+  uses: try-chance/setup-typos@v0.0.3
 
 - name: Run typos
   run: typos .
@@ -14,7 +14,7 @@ Install [crate-ci/typos](https://github.com/crate-ci/typos) and add it to `PATH`
 
 | Input | Required | Default | Description |
 | :--- | :---: | :---: | :--- |
-| `version` | No | `latest` | Version to install. Accepts `latest`, a version such as `1.47.1`, or a release tag such as `v1.47.1`. |
+| `version` | No | `latest` | Version to install. Accepts `latest`, a version such as `1.51.1`, or a release tag such as `v1.51.1`. |
 | `github-token` | No | `${{ github.token }}` | Token used to resolve `latest` with an authenticated GitHub API request. Downloads use public URLs. |
 
 ## Outputs
