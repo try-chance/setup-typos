@@ -32,8 +32,19 @@ test("builds Windows x64 artifact metadata", () => {
   assert.equal(artifact.fileName, "typos-v1.47.1-x86_64-pc-windows-msvc.zip");
 });
 
+test("builds Windows arm64 artifact metadata", () => {
+  for (const version of ["1.51.1", "v1.51.1"]) {
+    assert.deepEqual(getArtifact(version, "win32", "arm64"), {
+      archiveExt: "zip",
+      executable: "typos.exe",
+      fileName: "typos-v1.51.1-aarch64-pc-windows-msvc.zip",
+      url: "https://github.com/crate-ci/typos/releases/download/v1.51.1/typos-v1.51.1-aarch64-pc-windows-msvc.zip"
+    });
+  }
+});
+
 test("rejects unsupported platforms and architectures", () => {
   assert.throws(() => getArtifact("1.47.1", "freebsd", "x64"), /Unsupported platform/);
   assert.throws(() => getArtifact("1.47.1", "linux", "arm"), /Unsupported platform and architecture/);
-  assert.throws(() => getArtifact("1.47.1", "win32", "arm64"), /Unsupported platform and architecture/);
+  assert.throws(() => getArtifact("1.47.1", "win32", "ia32"), /Unsupported platform and architecture/);
 });

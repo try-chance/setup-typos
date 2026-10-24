@@ -23155,7 +23155,8 @@ var TARGET_TRIPLES = /* @__PURE__ */ new Map([
   ["linux-arm64", "aarch64-unknown-linux-musl"],
   ["darwin-x64", "x86_64-apple-darwin"],
   ["darwin-arm64", "aarch64-apple-darwin"],
-  ["win32-x64", "x86_64-pc-windows-msvc"]
+  ["win32-x64", "x86_64-pc-windows-msvc"],
+  ["win32-arm64", "aarch64-pc-windows-msvc"]
 ]);
 function normalizeVersion(version) {
   const normalized = version.trim().replace(/^v/i, "");
