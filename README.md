@@ -33,4 +33,6 @@ The action follows the official `typos` release artifact names and supports:
 | :--- | :---: |
 | **Linux** | `x64`, `arm64` |
 | **macOS** | `x64`, `arm64` |
-| **Windows** | `x64` |
+| **Windows** | `x64`, `arm64` |
+
+Windows `arm64` requires typos v1.51.1 or later.
